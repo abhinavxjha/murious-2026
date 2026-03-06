@@ -707,12 +707,16 @@ img {
 
 .section-tag {
   font-family: var(--font-heading);
-  font-size: 0.8rem;
-  letter-spacing: 5px;
+  font-size: 1.2rem;   /* increased size */
+  letter-spacing: 6px;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-light);
   display: block;
   margin-bottom: 12px;
+
+  text-shadow:
+    0 0 6px rgba(212,168,83,0.7),
+    0 0 12px rgba(212,168,83,0.5);
 }
 
 .section-title {
