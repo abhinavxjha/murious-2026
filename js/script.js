@@ -17,7 +17,7 @@ const firebaseConfig = {
 };
 
 // Razorpay Key — Replace with your real key
-const RAZORPAY_KEY = "YOUR_RAZORPAY_KEY_ID";
+const RAZORPAY_KEY = "rzp_live_SODKZII24hVdSO";
 
 let db = null;
 
@@ -347,168 +347,9 @@ function initFirebase() {
   }
 
   // ════════════════════════════════════════════════════
-  // FORMS (Registration + Contact)
+  // FORMS (Contact only — Registration moved to register.html)
   // ════════════════════════════════════════════════════
   function initForms() {
-    // ── Registration Form ──
-    const regForm = document.getElementById('registerForm');
-    const regEvent = document.getElementById('regEvent');
-    const feeDisplay = document.getElementById('feeDisplay');
-    const feeAmount = document.getElementById('feeAmount');
-    const regLoading = document.getElementById('regLoading');
-    const regSuccess = document.getElementById('regSuccess');
-    const regError = document.getElementById('regError');
-    const regErrorMsg = document.getElementById('regErrorMsg');
-    const registerBtn = document.getElementById('registerBtn');
-
-    // Dynamic fee display on event change
-    if (regEvent) {
-      regEvent.addEventListener('change', function () {
-        const sel = this.options[this.selectedIndex];
-        const fee = sel.getAttribute('data-fee');
-        if (fee) {
-          feeAmount.textContent = '₹' + fee;
-          feeDisplay.style.display = 'flex';
-          feeDisplay.style.animation = 'none';
-          feeDisplay.offsetHeight;
-          feeDisplay.style.animation = 'feeSlideIn 0.4s ease forwards';
-        } else {
-          feeDisplay.style.display = 'none';
-        }
-      });
-    }
-
-    // Registration form submit
-    if (regForm) {
-      regForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        hideMessages();
-
-        const name = document.getElementById('regName').value.trim();
-        const email = document.getElementById('regEmail').value.trim();
-        const phone = document.getElementById('regPhone').value.trim();
-        const college = document.getElementById('regCollege').value.trim();
-        const eventSel = regEvent ? regEvent.options[regEvent.selectedIndex] : null;
-        const eventName = regEvent ? regEvent.value : '';
-        const eventFee = eventSel ? parseInt(eventSel.getAttribute('data-fee')) : 0;
-
-        // Validate fields
-        let valid = true;
-        const fields = regForm.querySelectorAll('input, select');
-        fields.forEach(inp => {
-          if (!inp.value || !inp.value.trim()) { inp.classList.add('invalid'); valid = false; }
-          else inp.classList.remove('invalid');
-        });
-
-        // Email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (email && !emailRegex.test(email)) {
-          document.getElementById('regEmail').classList.add('invalid');
-          showError('Please enter a valid email address.');
-          return;
-        }
-
-        // Phone length
-        if (phone && !/^\d{10}$/.test(phone)) {
-          document.getElementById('regPhone').classList.add('invalid');
-          showError('Phone number must be exactly 10 digits.');
-          return;
-        }
-
-        if (!valid || !eventName || eventFee <= 0) {
-          showError('Please fill in all fields and select an event.');
-          return;
-        }
-
-        // Check duplicate registration
-        if (db) {
-          try {
-            showLoading(true);
-            const snapshot = await db.collection('registrations')
-              .where('email', '==', email)
-              .where('event', '==', eventName)
-              .get();
-            if (!snapshot.empty) {
-              showLoading(false);
-              showError('You have already registered for this event with this email.');
-              return;
-            }
-          } catch (err) {
-            console.error('Duplicate check error:', err);
-            showLoading(false);
-            showError('Could not verify registration. Please try again.');
-            return;
-          }
-        }
-
-        // Open Razorpay
-        showLoading(true);
-        const options = {
-          key: RAZORPAY_KEY,
-          amount: eventFee * 100,
-          currency: "INR",
-          name: "Murious 20.0",
-          description: eventName + " Registration",
-          handler: async function (response) {
-            const paymentId = response.razorpay_payment_id;
-            if (db) {
-              try {
-                await db.collection('registrations').add({
-                  name: name,
-                  email: email,
-                  phone: phone,
-                  college: college,
-                  event: eventName,
-                  fee: eventFee,
-                  paymentId: paymentId,
-                  paymentStatus: "Success",
-                  timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-              } catch (err) {
-                console.error('Firestore save error:', err);
-              }
-            }
-            showLoading(false);
-            regForm.reset();
-            feeDisplay.style.display = 'none';
-            registerBtn.classList.add('submitted');
-            const rect = registerBtn.getBoundingClientRect();
-            const container = document.getElementById('sparkleContainer');
-            spawnSparkles(rect.left + rect.width / 2, rect.top + rect.height / 2, container);
-            showSuccess();
-            setTimeout(() => { registerBtn.classList.remove('submitted'); }, 3000);
-          },
-          modal: {
-            ondismiss: function () {
-              showLoading(false);
-              showError('Payment was cancelled. Registration not completed.');
-            }
-          },
-          prefill: {
-            name: name,
-            email: email,
-            contact: phone
-          },
-          theme: {
-            color: "#d4a853"
-          }
-        };
-
-        try {
-          const rzp = new Razorpay(options);
-          rzp.on('payment.failed', function (resp) {
-            showLoading(false);
-            showError('Payment failed: ' + (resp.error.description || 'Unknown error.'));
-          });
-          rzp.open();
-        } catch (err) {
-          showLoading(false);
-          showError('Could not open payment gateway. Please try again.');
-          console.error('Razorpay error:', err);
-        }
-      });
-    }
-
     // ── Contact Form ──
     const contactForm = document.getElementById('contactForm');
     if (contactForm) {
@@ -538,29 +379,6 @@ function initFirebase() {
       .forEach(inp => {
         inp.addEventListener('input', () => inp.classList.remove('invalid'));
       });
-
-    // Helper functions
-    function showLoading(show) {
-      if (regLoading) regLoading.classList.toggle('active', show);
-    }
-
-    function hideMessages() {
-      if (regSuccess) regSuccess.classList.remove('active');
-      if (regError) regError.classList.remove('active');
-    }
-
-    function showSuccess() {
-      hideMessages();
-      if (regSuccess) regSuccess.classList.add('active');
-      setTimeout(() => { if (regSuccess) regSuccess.classList.remove('active'); }, 8000);
-    }
-
-    function showError(msg) {
-      hideMessages();
-      if (regErrorMsg) regErrorMsg.textContent = msg;
-      if (regError) regError.classList.add('active');
-      setTimeout(() => { if (regError) regError.classList.remove('active'); }, 8000);
-    }
   }
 
   // ════════════════════════════════════════════════════
@@ -718,66 +536,66 @@ function initFirebase() {
     if (!scrollContainer) return;
 
     const evtCardData = [
-{
-title: "THE TRIWIZARD QUEST",
-img: "images/TREASURE.png",
-desc: "The Triwizard Quest is a treasure hunt where wit, courage, and teamwork decide the ultimate champions. Participants face a series of clues, mysterious challenges, and hidden tasks scattered across the grounds."
-},
+      {
+        title: "THE TRIWIZARD QUEST",
+        img: "images/TREASURE.png",
+        desc: "The Triwizard Quest is a treasure hunt where wit, courage, and teamwork decide the ultimate champions. Participants face a series of clues, mysterious challenges, and hidden tasks scattered across the grounds."
+      },
 
-{
-title: "E-SPORTS",
-img: "images/console.png",
-desc: "Step into the ultimate digital battlefield where strategy, precision, and reflexes define true champions. Our Esports Championship brings together the fiercest gamers on campus to compete in electrifying titles like Valorant, FIFA, Clash Royale, and Tekken."
-},
+      {
+        title: "E-SPORTS",
+        img: "images/console.png",
+        desc: "Step into the ultimate digital battlefield where strategy, precision, and reflexes define true champions. Our Esports Championship brings together the fiercest gamers on campus to compete in electrifying titles like Valorant, FIFA, Clash Royale, and Tekken."
+      },
 
-{
-title: "REEL RUMBLE",
-img: "images/reel.png",
-desc: "Create a compelling reel around a surprise theme. Use visuals, music, and effects to engage and captivate your audience. Judged on creativity, relevance, and impact. Grab your camera and let your imagination flow!"
-},
+      {
+        title: "REEL RUMBLE",
+        img: "images/reel.png",
+        desc: "Create a compelling reel around a surprise theme. Use visuals, music, and effects to engage and captivate your audience. Judged on creativity, relevance, and impact. Grab your camera and let your imagination flow!"
+      },
 
-{
-title: "FRAME IT",
-img: "images/camera.png",
-desc: "Participants are required to roam around the campus and capture the best photograph based on the theme provided to them, ensuring it is visually appealing to everyone. The best shot wins!"
-},
+      {
+        title: "FRAME IT",
+        img: "images/camera.png",
+        desc: "Participants are required to roam around the campus and capture the best photograph based on the theme provided to them, ensuring it is visually appealing to everyone. The best shot wins!"
+      },
 
-{
-title: "CODE ROYALE",
-img: "images/laptop.png",
-desc: "Code Royale is a high-intensity 1v1 coding battle where participants compete in knockout rounds to prove their dominance. With limited time and rising pressure, only the fastest and most accurate coder survives each round."
-},
+      {
+        title: "CODE ROYALE",
+        img: "images/laptop.png",
+        desc: "Code Royale is a high-intensity 1v1 coding battle where participants compete in knockout rounds to prove their dominance. With limited time and rising pressure, only the fastest and most accurate coder survives each round."
+      },
 
-{
-title: "PROMPT TO DESIGN",
-img: "images/cloud.png",
-desc: "Prompt to Design is an AI-based challenge where participants recreate a given image using only text prompts. Contestants observe the reference image and generate it through an AI tool."
-},
+      {
+        title: "PROMPT TO DESIGN",
+        img: "images/cloud.png",
+        desc: "Prompt to Design is an AI-based challenge where participants recreate a given image using only text prompts. Contestants observe the reference image and generate it through an AI tool."
+      },
 
-{
-title: "STORAGE WARS",
-img: "images/sword.png",
-desc: "Students engage in bidding on storage containers using fake currency, inspecting only the exterior. Teams of 2–4 collaborate, emphasizing strategic thinking and resource management."
-},
+      {
+        title: "STORAGE WARS",
+        img: "images/sword.png",
+        desc: "Students engage in bidding on storage containers using fake currency, inspecting only the exterior. Teams of 2–4 collaborate, emphasizing strategic thinking and resource management."
+      },
 
-{
-title: "CODE IN DARK",
-img: "images/codeinblack.png",
-desc: "Code in Dark is a two-person team event that tests coding skills and communication. One teammate reads the problem and dictates the code, while the other, blindfolded, types it exactly as instructed."
-},
+      {
+        title: "CODE IN DARK",
+        img: "images/codeinblack.png",
+        desc: "Code in Dark is a two-person team event that tests coding skills and communication. One teammate reads the problem and dictates the code, while the other, blindfolded, types it exactly as instructed."
+      },
 
-{
-title: "TECH TRIVIA",
-img: "images/QUIZ.png",
-desc: "A fast-paced quiz game inspired by the KBC format, featuring multiple rounds of coding, general knowledge, and tech current affairs. Participants earn points each round, with a leaderboard deciding the ultimate winner."
-},
+      {
+        title: "TECH TRIVIA",
+        img: "images/QUIZ.png",
+        desc: "A fast-paced quiz game inspired by the KBC format, featuring multiple rounds of coding, general knowledge, and tech current affairs. Participants earn points each round, with a leaderboard deciding the ultimate winner."
+      },
 
-{
-title: "OPEN MIC",
-img: "images/openmic1.png",
-desc: "In collaboration with the Theatre and Music Club, this stage welcomes poetry, storytelling, monologues, music, and everything in between. Step into the spotlight, share your story, and let your art be heard."
-}
-];
+      {
+        title: "OPEN MIC",
+        img: "images/openmic1.png",
+        desc: "In collaboration with the Theatre and Music Club, this stage welcomes poetry, storytelling, monologues, music, and everything in between. Step into the spotlight, share your story, and let your art be heard."
+      }
+    ];
 
 
     const EVT_TOTAL = evtCardData.length;
@@ -805,7 +623,7 @@ ${evtCardData[i].title}
 
 </div>
 `;
-      
+
       gallery.appendChild(card);
       evtCards.push(card);
     }
@@ -843,28 +661,28 @@ ${evtCardData[i].title}
     function evtEaseInOut(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
 
     function getEvtSlotStyle(offset) {
-  switch (offset) {
+      switch (offset) {
 
-    case 0:  
-      return { x: 0, y: -2, r: 0, s: 1.08, o: 1, z: 10 };
+        case 0:
+          return { x: 0, y: -2, r: 0, s: 1.08, o: 1, z: 10 };
 
-    case -1: 
-      return { x: -55, y: 0, r: -10, s: 0.82, o: 0.85, z: 6 };
+        case -1:
+          return { x: -55, y: 0, r: -10, s: 0.82, o: 0.85, z: 6 };
 
-    case 1:  
-      return { x: 55, y: 0, r: 10, s: 0.82, o: 0.85, z: 6 };
+        case 1:
+          return { x: 55, y: 0, r: 10, s: 0.82, o: 0.85, z: 6 };
 
-    case -2: 
-      return { x: -95, y: 4, r: -18, s: 0.65, o: 0.5, z: 3 };
+        case -2:
+          return { x: -95, y: 4, r: -18, s: 0.65, o: 0.5, z: 3 };
 
-    case 2:  
-      return { x: 95, y: 4, r: 18, s: 0.65, o: 0.5, z: 3 };
+        case 2:
+          return { x: 95, y: 4, r: 18, s: 0.65, o: 0.5, z: 3 };
 
-    default:
-      if (offset < 0) return { x: -140, y: 10, r: -25, s: 0.5, o: 0, z: 1 };
-      else return { x: 140, y: 10, r: 25, s: 0.5, o: 0, z: 1 };
-  }
-}
+        default:
+          if (offset < 0) return { x: -140, y: 10, r: -25, s: 0.5, o: 0, z: 1 };
+          else return { x: 140, y: 10, r: 25, s: 0.5, o: 0, z: 1 };
+      }
+    }
 
     function lerpEvtSlot(a, b, t) {
       return {
@@ -879,9 +697,8 @@ ${evtCardData[i].title}
 
     let evtPrevActive = -1;
 
-    function animateEvtGallery()
-     {
-         const rect = scrollContainer.getBoundingClientRect();
+    function animateEvtGallery() {
+      const rect = scrollContainer.getBoundingClientRect();
 
       // Stronger optimization for mobile
       if (rect.bottom < -400 || rect.top > window.innerHeight + 400) return;
@@ -900,20 +717,20 @@ ${evtCardData[i].title}
       // Position each card
       evtCards.forEach((card, i) => {
 
-const offsetA = i - baseIndex;
-const offsetB = i - (baseIndex + 1);
+        const offsetA = i - baseIndex;
+        const offsetB = i - (baseIndex + 1);
 
-const slotA = getEvtSlotStyle(offsetA);
-const slotB = getEvtSlotStyle(offsetB);
+        const slotA = getEvtSlotStyle(offsetA);
+        const slotB = getEvtSlotStyle(offsetB);
 
-const slot = lerpEvtSlot(slotA, slotB, easedFrac);
+        const slot = lerpEvtSlot(slotA, slotB, easedFrac);
 
-card.style.transform = `translate(${slot.x}vw, ${slot.y}vh) rotate(${slot.r}deg) scale(${slot.s})`;
-card.style.opacity = slot.o;
-card.style.zIndex = slot.z;
+        card.style.transform = `translate(${slot.x}vw, ${slot.y}vh) rotate(${slot.r}deg) scale(${slot.s})`;
+        card.style.opacity = slot.o;
+        card.style.zIndex = slot.z;
 
-});
-      
+      });
+
       // Update text panel on active card change
       if (activeIndex !== evtPrevActive) {
         evtPrevActive = activeIndex;
@@ -975,20 +792,20 @@ card.style.zIndex = slot.z;
     initForms();
     initSmoothScroll();
     initEventGallery();
-    document.querySelectorAll(".magic-particles").forEach(container=>{
+    document.querySelectorAll(".magic-particles").forEach(container => {
 
-for(let i=0;i<6;i++){
+      for (let i = 0; i < 6; i++) {
 
-const p=document.createElement("span");
+        const p = document.createElement("span");
 
-p.style.left=Math.random()*100+"%";
-p.style.top=Math.random()*100+"%";
-p.style.animationDelay=Math.random()*4+"s";
+        p.style.left = Math.random() * 100 + "%";
+        p.style.top = Math.random() * 100 + "%";
+        p.style.animationDelay = Math.random() * 4 + "s";
 
-container.appendChild(p);
+        container.appendChild(p);
 
-}
-});
+      }
+    });
 
     // Resize handler
     let resizeTimeout;

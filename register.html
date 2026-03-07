@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register — Murious 20.0 | JUIT Tech Fest</title>
+    <meta name="description"
+        content="Register for Murious 20.0 events — Coding Contest, Hackathon, Robotics Challenge & more. Secure your spot now!">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=Raleway:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/register.css">
+</head>
+
+<body>
+
+    <!-- Starfield Background -->
+    <div class="starfield" id="starfield"></div>
+
+    <!-- Page Content -->
+    <div class="reg-page">
+
+        <!-- Back to Home -->
+        <a href="index.html" class="back-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 12H5" />
+                <path d="M12 19l-7-7 7-7" />
+            </svg>
+            Back to Murious
+        </a>
+
+        <!-- Header -->
+        <header class="reg-header">
+            <span class="section-tag">✦ Join the Adventure</span>
+            <h1 class="page-title">Register for Murious 20.0</h1>
+            <div class="title-ornament"></div>
+            <p class="page-subtitle">Secure your spot in the ultimate tech fest. Choose your event, pay securely, and
+                get ready for an interstellar experience.</p>
+        </header>
+
+        <!-- Registration Form Card -->
+        <div class="reg-card">
+
+            <!-- Loading Overlay -->
+            <div class="reg-loading-overlay" id="regLoading">
+                <div class="reg-spinner"></div>
+                <span>Processing Payment...</span>
+            </div>
+
+            <form id="registerForm" novalidate>
+                <div class="form-group">
+                    <label for="regName">Full Name</label>
+                    <input type="text" id="regName" placeholder="Your full name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regEmail">Email Address</label>
+                    <input type="email" id="regEmail" placeholder="you@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regPhone">Phone Number</label>
+                    <input type="tel" id="regPhone" placeholder="10-digit phone number" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="regCollege">College Name</label>
+                    <input type="text" id="regCollege" placeholder="Your college / university" required>
+                </div>
+
+                <!-- Multi-Event Selection -->
+                <div class="form-group">
+                    <label>Select Events <span class="label-hint">(choose one or more)</span></label>
+                    <div class="event-grid" id="eventGrid">
+                        <label class="event-card" data-event="Coding Contest" data-fee="100">
+                            <input type="checkbox" name="events" value="Coding Contest" data-fee="100">
+                            <div class="event-card-inner">
+                                <span class="event-icon">💻</span>
+                                <span class="event-name">Coding Contest</span>
+                                <span class="event-fee">₹100</span>
+                            </div>
+                            <div class="event-check">✓</div>
+                        </label>
+                        <label class="event-card" data-event="Hackathon" data-fee="200">
+                            <input type="checkbox" name="events" value="Hackathon" data-fee="200">
+                            <div class="event-card-inner">
+                                <span class="event-icon">🚀</span>
+                                <span class="event-name">Hackathon</span>
+                                <span class="event-fee">₹200</span>
+                            </div>
+                            <div class="event-check">✓</div>
+                        </label>
+                        <label class="event-card" data-event="Robotics Challenge" data-fee="150">
+                            <input type="checkbox" name="events" value="Robotics Challenge" data-fee="150">
+                            <div class="event-card-inner">
+                                <span class="event-icon">🤖</span>
+                                <span class="event-name">Robotics Challenge</span>
+                                <span class="event-fee">₹150</span>
+                            </div>
+                            <div class="event-check">✓</div>
+                        </label>
+                        <label class="event-card" data-event="UI/UX Design" data-fee="80">
+                            <input type="checkbox" name="events" value="UI/UX Design" data-fee="80">
+                            <div class="event-card-inner">
+                                <span class="event-icon">🎨</span>
+                                <span class="event-name">UI/UX Design</span>
+                                <span class="event-fee">₹80</span>
+                            </div>
+                            <div class="event-check">✓</div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Dynamic Total Fee Display -->
+                <div class="fee-display" id="feeDisplay" style="display:none;">
+                    <div class="fee-left">
+                        <span class="fee-label">Total Fee</span>
+                        <span class="fee-count" id="feeCount">0 events selected</span>
+                    </div>
+                    <span class="fee-amount" id="feeAmount">₹0</span>
+                </div>
+
+                <button type="submit" class="reg-submit" id="registerBtn">
+                    <span class="btn-text">⚡ Register & Pay</span>
+                    <span class="btn-magic">✦ Mischief Managed! ✦</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Toast Messages -->
+        <div class="reg-message reg-message--success" id="regSuccess">
+            <span class="reg-msg-icon">✦</span>
+            <div>
+                <strong>Registration Successful!</strong>
+                <p>Your spot has been secured. Check your email for confirmation.</p>
+            </div>
+        </div>
+        <div class="reg-message reg-message--error" id="regError">
+            <span class="reg-msg-icon">⚠</span>
+            <div>
+                <strong>Payment Failed</strong>
+                <p id="regErrorMsg">Something went wrong. Please try again.</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="reg-footer">
+            <p>✦ Murious 20.0 — A <a href="https://jyc.co.in/" target="_blank">JYC</a> Technical Festival · JUIT Solan
+            </p>
+        </footer>
+
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <!-- Razorpay SDK -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- Registration Script -->
+    <script src="js/register.js"></script>
+
+</body>
+
+</html>
