@@ -525,6 +525,248 @@
 
 
   // ════════════════════════════════════════════════════
+  // EVENT SCROLL GALLERY
+  // ════════════════════════════════════════════════════
+  function initEventGallery() {
+    const scrollContainer = document.querySelector('.event-scroll-container');
+    if (!scrollContainer) return;
+
+    const evtCardData = [
+{
+title: "THE TRIWIZARD QUEST",
+img: "images/TREASURE.png",
+desc: "The Triwizard Quest is a treasure hunt where wit, courage, and teamwork decide the ultimate champions. Participants face a series of clues, mysterious challenges, and hidden tasks scattered across the grounds."
+},
+
+{
+title: "E-SPORTS",
+img: "images/console.png",
+desc: "Step into the ultimate digital battlefield where strategy, precision, and reflexes define true champions. Our Esports Championship brings together the fiercest gamers on campus to compete in electrifying titles like Valorant, FIFA, Clash Royale, and Tekken."
+},
+
+{
+title: "REEL RUMBLE",
+img: "images/reel.png",
+desc: "Create a compelling reel around a surprise theme. Use visuals, music, and effects to engage and captivate your audience. Judged on creativity, relevance, and impact. Grab your camera and let your imagination flow!"
+},
+
+{
+title: "FRAME IT",
+img: "images/camera.png",
+desc: "Participants are required to roam around the campus and capture the best photograph based on the theme provided to them, ensuring it is visually appealing to everyone. The best shot wins!"
+},
+
+{
+title: "CODE ROYALE",
+img: "images/laptop.png",
+desc: "Code Royale is a high-intensity 1v1 coding battle where participants compete in knockout rounds to prove their dominance. With limited time and rising pressure, only the fastest and most accurate coder survives each round."
+},
+
+{
+title: "PROMPT TO DESIGN",
+img: "images/cloud.png",
+desc: "Prompt to Design is an AI-based challenge where participants recreate a given image using only text prompts. Contestants observe the reference image and generate it through an AI tool."
+},
+
+{
+title: "STORAGE WARS",
+img: "images/sword.png",
+desc: "Students engage in bidding on storage containers using fake currency, inspecting only the exterior. Teams of 2–4 collaborate, emphasizing strategic thinking and resource management."
+},
+
+{
+title: "CODE IN DARK",
+img: "images/codeinblack.png",
+desc: "Code in Dark is a two-person team event that tests coding skills and communication. One teammate reads the problem and dictates the code, while the other, blindfolded, types it exactly as instructed."
+},
+
+{
+title: "TECH TRIVIA",
+img: "images/QUIZ.png",
+desc: "A fast-paced quiz game inspired by the KBC format, featuring multiple rounds of coding, general knowledge, and tech current affairs. Participants earn points each round, with a leaderboard deciding the ultimate winner."
+},
+
+{
+title: "OPEN MIC",
+img: "images/openmic1.png",
+desc: "In collaboration with the Theatre and Music Club, this stage welcomes poetry, storytelling, monologues, music, and everything in between. Step into the spotlight, share your story, and let your art be heard."
+}
+];
+
+
+    const EVT_TOTAL = evtCardData.length;
+
+    // Create card elements dynamically
+    const gallery = document.getElementById('evtCardGallery');
+    const evtCards = [];
+    for (let i = 0; i < EVT_TOTAL; i++) {
+      const card = document.createElement('div');
+      card.className = 'evt-card';
+      card.id = 'evtCard' + i;
+      card.innerHTML = `
+<div class="evt-card-inner glass-card">
+
+<div class="magic-grid"></div>
+
+<div class="spell-glow"></div>
+<div class="magic-particles"></div>
+
+<img src="${evtCardData[i].img}" class="evt-card-img">
+
+<div class="evt-card-label">
+${evtCardData[i].title}
+</div>
+
+</div>
+`;
+      
+      gallery.appendChild(card);
+      evtCards.push(card);
+    }
+
+    // DOM references
+    const evtTextPanel = document.getElementById('evtTextPanel');
+    const evtTextTitle = document.getElementById('evtTextTitle');
+    const evtTextDesc = document.getElementById('evtTextDesc');
+    const evtTextType = document.getElementById('evtTextType');
+    const evtCounterCurrent = document.getElementById('evtCounterCurrent');
+    const evtCounterTotal = document.getElementById('evtCounterTotal');
+    const evtProgressFill = document.getElementById('evtProgressFill');
+    const evtDotContainer = document.getElementById('evtDotIndicators');
+
+    // Set counter total
+    if (evtCounterTotal) evtCounterTotal.textContent = ' / ' + String(EVT_TOTAL).padStart(2, '0');
+
+    // Set initial text
+    if (evtTextTitle) evtTextTitle.textContent = evtCardData[0].title;
+    if (evtTextDesc) evtTextDesc.textContent = evtCardData[0].desc;
+    if (evtTextType) evtTextType.textContent = evtCardData[0].type;
+
+    // Create dot indicators
+    const evtDots = [];
+    for (let i = 0; i < EVT_TOTAL; i++) {
+      const d = document.createElement('div');
+      d.className = 'evt-dot' + (i === 0 ? ' active' : '');
+      evtDotContainer.appendChild(d);
+      evtDots.push(d);
+    }
+
+    // Helpers
+    function evtClamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+    function evtLerp(a, b, t) { return a + (b - a) * t; }
+    function evtEaseInOut(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+
+    function getEvtSlotStyle(offset) {
+  switch (offset) {
+
+    case 0:  
+      return { x: 0, y: -2, r: 0, s: 1.08, o: 1, z: 10 };
+
+    case -1: 
+      return { x: -55, y: 0, r: -10, s: 0.82, o: 0.85, z: 6 };
+
+    case 1:  
+      return { x: 55, y: 0, r: 10, s: 0.82, o: 0.85, z: 6 };
+
+    case -2: 
+      return { x: -95, y: 4, r: -18, s: 0.65, o: 0.5, z: 3 };
+
+    case 2:  
+      return { x: 95, y: 4, r: 18, s: 0.65, o: 0.5, z: 3 };
+
+    default:
+      if (offset < 0) return { x: -140, y: 10, r: -25, s: 0.5, o: 0, z: 1 };
+      else return { x: 140, y: 10, r: 25, s: 0.5, o: 0, z: 1 };
+  }
+}
+
+    function lerpEvtSlot(a, b, t) {
+      return {
+        x: evtLerp(a.x, b.x, t),
+        y: evtLerp(a.y, b.y, t),
+        r: evtLerp(a.r, b.r, t),
+        s: evtLerp(a.s, b.s, t),
+        o: evtLerp(a.o, b.o, t),
+        z: t < 0.5 ? a.z : b.z,
+      };
+    }
+
+    let evtPrevActive = -1;
+
+    function animateEvtGallery()
+     {
+         const rect = scrollContainer.getBoundingClientRect();
+
+      // Stronger optimization for mobile
+      if (rect.bottom < -400 || rect.top > window.innerHeight + 400) return;
+      const containerHeight = scrollContainer.offsetHeight;
+      const viewportHeight = window.innerHeight;
+      const scrollableDistance = containerHeight - viewportHeight;
+      const scrolled = -rect.top;
+      const rawProgress = evtClamp(scrolled / scrollableDistance, 0, 1);
+
+      const floatIndex = rawProgress * (EVT_TOTAL - 1);
+      const baseIndex = Math.floor(floatIndex);
+      const fractional = floatIndex - baseIndex;
+      const easedFrac = evtEaseInOut(fractional);
+      const activeIndex = Math.round(floatIndex);
+
+      // Position each card
+      evtCards.forEach((card, i) => {
+
+const offsetA = i - baseIndex;
+const offsetB = i - (baseIndex + 1);
+
+const slotA = getEvtSlotStyle(offsetA);
+const slotB = getEvtSlotStyle(offsetB);
+
+const slot = lerpEvtSlot(slotA, slotB, easedFrac);
+
+card.style.transform = `translate(${slot.x}vw, ${slot.y}vh) rotate(${slot.r}deg) scale(${slot.s})`;
+card.style.opacity = slot.o;
+card.style.zIndex = slot.z;
+
+});
+      
+      // Update text panel on active card change
+      if (activeIndex !== evtPrevActive) {
+        evtPrevActive = activeIndex;
+        const safeIndex = evtClamp(activeIndex, 0, EVT_TOTAL - 1);
+
+        evtTextPanel.style.transition = 'opacity 0.25s, transform 0.25s';
+        evtTextPanel.style.opacity = '0';
+        evtTextPanel.style.transform = 'translateY(20px)';
+
+        setTimeout(() => {
+          evtTextTitle.textContent = evtCardData[safeIndex].title;
+          evtTextDesc.textContent = evtCardData[safeIndex].desc;
+          evtTextType.textContent = evtCardData[safeIndex].type;
+          evtCounterCurrent.textContent = String(safeIndex + 1).padStart(2, '0');
+
+          evtDots.forEach((d, di) => d.classList.toggle('active', di === safeIndex));
+
+          evtTextPanel.style.opacity = '1';
+          evtTextPanel.style.transform = 'translateY(0)';
+        }, 250);
+      }
+
+      // Micro parallax on text
+      const microShift = (easedFrac - 0.5) * 10;
+      if (activeIndex === evtPrevActive) {
+        evtTextPanel.style.transition = 'none';
+        evtTextPanel.style.transform = `translateY(${microShift}px)`;
+      }
+
+      // Progress bar
+      evtProgressFill.style.width = `${rawProgress * 100}%`;
+    }
+
+    window.addEventListener('scroll', () => requestAnimationFrame(animateEvtGallery), { passive: true });
+    animateEvtGallery();
+  }
+
+
+  // ════════════════════════════════════════════════════
   // INIT
   // ════════════════════════════════════════════════════
   function init() {
@@ -545,6 +787,21 @@
     initScheduleTabs();
     initForms();
     initSmoothScroll();
+    initEventGallery();
+    document.querySelectorAll(".magic-particles").forEach(container=>{
+
+for(let i=0;i<6;i++){
+
+const p=document.createElement("span");
+
+p.style.left=Math.random()*100+"%";
+p.style.top=Math.random()*100+"%";
+p.style.animationDelay=Math.random()*4+"s";
+
+container.appendChild(p);
+
+}
+});
 
     // Resize handler
     let resizeTimeout;
