@@ -245,9 +245,14 @@ function initFirebase() {
 
     navAnchors.forEach(a => {
       a.addEventListener('click', (e) => {
-        e.preventDefault();
-        const target = document.querySelector(a.getAttribute('href'));
-        if (target) target.scrollIntoView({ behavior: 'smooth' });
+        const href = a.getAttribute('href') || '';
+
+        if (href.startsWith('#')) {
+          e.preventDefault();
+          const target = document.querySelector(href);
+          if (target) target.scrollIntoView({ behavior: 'smooth' });
+        }
+
         toggle.classList.remove('active');
         links.classList.remove('open');
       });
