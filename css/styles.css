@@ -100,12 +100,28 @@ html::-webkit-scrollbar-thumb {
 
 body {
   font-family: var(--font-body);
-  background: url('../assets/images/Background.webp') center center / cover no-repeat fixed, #050510;
+  background: #050510;
   color: var(--text);
   line-height: 1.7;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   cursor: none !important;
+}
+
+/* Fixed background that won't jitter on mobile address bar hide/show */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100lvh;
+  background: url('../assets/images/Background.webp') center center / cover no-repeat;
+  z-index: -1;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  pointer-events: none;
 }
 
 a,
@@ -383,6 +399,7 @@ img {
    ════════════════════════════════════════════════════ */
 .hero-section {
   height: 100vh;
+  height: 100svh;
   min-height: 600px;
   display: flex;
   align-items: center;
@@ -2326,6 +2343,7 @@ img {
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100svh;
   width: 100%;
   overflow: hidden;
   /* background: radial-gradient(ellipse at center, rgba(10, 10, 20, 0.92) 0%, rgba(5, 5, 10, 0.96) 70%); */
