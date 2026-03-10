@@ -94,6 +94,47 @@
     }
 }
 
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes successPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 20px rgba(212, 168, 83, 0.3);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 40px rgba(212, 168, 83, 0.6), 0 0 80px rgba(212, 168, 83, 0.2);
+    }
+}
+
+@keyframes qrGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px rgba(212, 168, 83, 0.15),
+            0 0 40px rgba(212, 168, 83, 0.05);
+    }
+
+    50% {
+        box-shadow: 0 0 30px rgba(212, 168, 83, 0.3),
+            0 0 60px rgba(212, 168, 83, 0.1),
+            0 0 90px rgba(212, 168, 83, 0.05);
+    }
+}
+
 /* ── Base ── */
 * {
     margin: 0;
@@ -235,6 +276,82 @@ body {
     border-radius: 2px;
 }
 
+/* ════════════════════════════════════════
+   STEP INDICATORS
+   ════════════════════════════════════════ */
+.step-indicators {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 32px;
+    padding: 0 20px;
+}
+
+.step-dot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+}
+
+.step-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(10, 10, 20, 0.8);
+    border: 2px solid rgba(212, 168, 83, 0.2);
+    color: rgba(156, 163, 175, 0.5);
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.4s ease;
+}
+
+.step-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(156, 163, 175, 0.4);
+    transition: color 0.4s;
+}
+
+.step-dot.active .step-number {
+    background: rgba(212, 168, 83, 0.15);
+    border-color: #d4a853;
+    color: #d4a853;
+    box-shadow: 0 0 20px rgba(212, 168, 83, 0.3);
+}
+
+.step-dot.active .step-label {
+    color: #d4a853;
+}
+
+.step-dot.completed .step-number {
+    background: #d4a853;
+    border-color: #d4a853;
+    color: #0a0a0f;
+}
+
+.step-dot.completed .step-label {
+    color: rgba(212, 168, 83, 0.7);
+}
+
+.step-line {
+    width: 60px;
+    height: 2px;
+    background: rgba(212, 168, 83, 0.15);
+    margin: 0 12px;
+    margin-bottom: 22px;
+    border-radius: 1px;
+    position: relative;
+}
+
 /* ── Form Card ── */
 .reg-card {
     width: 100%;
@@ -251,6 +368,7 @@ body {
     position: relative;
     overflow: hidden;
     transition: border-color 0.4s, box-shadow 0.4s;
+    animation: fadeInUp 0.6s ease forwards;
 }
 
 .reg-card:hover {
@@ -318,6 +436,15 @@ body {
     box-shadow: 0 0 12px rgba(239, 68, 68, 0.1);
 }
 
+.field-hint {
+    display: block;
+    font-size: 0.72rem;
+    color: rgba(156, 163, 175, 0.45);
+    margin-top: 6px;
+    letter-spacing: 0.3px;
+    line-height: 1.4;
+}
+
 /* ── Label hint ── */
 .label-hint {
     font-family: 'Raleway', sans-serif;
@@ -328,7 +455,9 @@ body {
     color: rgba(156, 163, 175, 0.5);
 }
 
-/* ── Event Checkbox Cards Grid ── */
+/* ══════════════════════════════════════════
+   EVENT CHECKBOX CARDS GRID
+   ══════════════════════════════════════════ */
 .event-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -377,10 +506,7 @@ body {
     box-shadow: 0 0 20px rgba(212, 168, 83, 0.12), inset 0 0 20px rgba(212, 168, 83, 0.04);
 }
 
-/* .event-icon {
-    font-size: 1.8rem;
-    line-height: 1; */
-   .event-icon img {
+.event-icon img {
     width: 45px;
     height: 45px;
     object-fit: contain;
@@ -569,7 +695,9 @@ body {
     letter-spacing: 2px;
 }
 
-/* ── Toast Messages ── */
+/* ══════════════════════════════════════════
+   TOAST MESSAGES
+   ══════════════════════════════════════════ */
 .reg-message {
     position: fixed;
     top: 28px;
@@ -625,6 +753,276 @@ body {
     color: rgba(156, 163, 175, 0.8);
     line-height: 1.4;
     margin: 0;
+}
+
+/* ══════════════════════════════════════════
+   QR PAYMENT CARD (Step 2)
+   ══════════════════════════════════════════ */
+.payment-card {
+    max-width: 540px;
+}
+
+.payment-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.payment-step-tag {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(212, 168, 83, 0.6);
+    display: block;
+    margin-bottom: 10px;
+}
+
+.payment-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.4rem, 4vw, 1.8rem);
+    color: #f5f0e8;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.payment-subtitle {
+    font-size: 0.9rem;
+    color: rgba(156, 163, 175, 0.7);
+    line-height: 1.5;
+}
+
+.payment-subtitle strong {
+    color: #f0d48a;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.1rem;
+}
+
+/* ── QR Code Container ── */
+.qr-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 20px;
+    padding: 16px;
+    max-width: 280px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(212, 168, 83, 0.15);
+    animation: qrGlow 4s ease-in-out infinite;
+}
+
+.qr-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(212, 168, 83, 0.08), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.qr-image {
+    width: 100%;
+    max-width: 240px;
+    border-radius: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+/* ── UPI ID Display ── */
+.upi-id-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: rgba(212, 168, 83, 0.06);
+    border: 1px solid rgba(212, 168, 83, 0.15);
+    border-radius: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.upi-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    color: rgba(212, 168, 83, 0.6);
+    text-transform: uppercase;
+}
+
+.upi-value {
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #f0d48a;
+    letter-spacing: 0.5px;
+}
+
+.copy-upi-btn {
+    background: rgba(212, 168, 83, 0.12);
+    border: 1px solid rgba(212, 168, 83, 0.2);
+    border-radius: 6px;
+    padding: 6px 8px;
+    cursor: pointer;
+    color: #d4a853;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.copy-upi-btn:hover {
+    background: rgba(212, 168, 83, 0.2);
+    border-color: rgba(212, 168, 83, 0.4);
+    transform: translateY(-1px);
+}
+
+/* ── Payment Instructions ── */
+.payment-instructions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+
+.instruction-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(10, 10, 20, 0.5);
+    border: 1px solid rgba(212, 168, 83, 0.06);
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.instruction-step:hover {
+    background: rgba(10, 10, 20, 0.7);
+    border-color: rgba(212, 168, 83, 0.15);
+}
+
+.instruction-num {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border-radius: 50%;
+    background: rgba(212, 168, 83, 0.12);
+    border: 1px solid rgba(212, 168, 83, 0.25);
+    color: #d4a853;
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.instruction-step span:last-child {
+    font-size: 0.85rem;
+    color: rgba(156, 163, 175, 0.75);
+    line-height: 1.4;
+}
+
+/* ── Back to Form Button ── */
+.back-to-form-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 12px 24px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    letter-spacing: 1.5px;
+    color: rgba(212, 168, 83, 0.6);
+    background: transparent;
+    border: 1px solid rgba(212, 168, 83, 0.15);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.back-to-form-btn:hover {
+    color: #d4a853;
+    border-color: rgba(212, 168, 83, 0.4);
+    background: rgba(212, 168, 83, 0.05);
+}
+
+/* ══════════════════════════════════════════
+   SUCCESS CARD (Step 3)
+   ══════════════════════════════════════════ */
+.success-card {
+    text-align: center;
+    max-width: 540px;
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(212, 168, 83, 0.15), rgba(212, 168, 83, 0.05));
+    border: 2px solid rgba(212, 168, 83, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #d4a853;
+    animation: successPulse 3s ease-in-out infinite;
+}
+
+.success-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    color: #f5f0e8;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.success-message {
+    font-size: 0.9rem;
+    color: rgba(156, 163, 175, 0.7);
+    line-height: 1.6;
+    margin-bottom: 28px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.success-details {
+    margin-bottom: 28px;
+    text-align: left;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(212, 168, 83, 0.08);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(212, 168, 83, 0.6);
+}
+
+.detail-value {
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.9rem;
+    color: #f5f0e8;
+    font-weight: 500;
+    text-align: right;
+    max-width: 60%;
+    word-break: break-word;
 }
 
 /* ── Footer ── */
@@ -684,8 +1082,47 @@ body {
         left: 12px;
         max-width: none;
     }
+
+    .step-indicators {
+        gap: 0;
+    }
+
+    .step-line {
+        width: 30px;
+        margin: 0 6px;
+    }
+
+    .step-label {
+        font-size: 0.55rem;
+    }
+
+    .step-number {
+        width: 30px;
+        height: 30px;
+        font-size: 0.75rem;
+    }
+
+    .qr-container {
+        max-width: 220px;
+    }
+
+    .upi-id-display {
+        gap: 6px;
+        padding: 10px 14px;
+    }
+
+    .detail-row {
+        flex-direction: column;
+        gap: 4px;
+        align-items: flex-start;
+    }
+
+    .detail-value {
+        text-align: left;
+        max-width: 100%;
+    }
 }
 
-.invalid{
-border:2px solid red;
+.invalid {
+    border: 2px solid red;
 }

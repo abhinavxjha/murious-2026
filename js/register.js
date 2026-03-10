@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════
    MURIOUS 20.0 — Registration Page Script
-   Firebase + Razorpay Integration (Multi-Event)
+   Firebase + QR Payment Integration (Multi-Event)
    ═══════════════════════════════════════════════════════ */
 
 // ── Firebase Config ──
@@ -14,10 +14,7 @@ const firebaseConfig = {
   measurementId: "G-36RTV9Y354",
 };
 
-const RAZORPAY_KEY = "rzp_live_SODKZII24hVdSO";
-
 let db = null;
-
 
 // ── Initialize Firebase ──
 function initFirebase() {
@@ -88,13 +85,26 @@ const feeAmount = document.getElementById("feeAmount");
 const feeCount = document.getElementById("feeCount");
 
 const regLoading = document.getElementById("regLoading");
-const regSuccess = document.getElementById("regSuccess");
-const regError = document.getElementById("regError");
-const regErrorMsg = document.getElementById("regErrorMsg");
 const registerBtn = document.getElementById("registerBtn");
 
 const participationType = document.getElementById("participationType");
 const teamSection = document.getElementById("teamSection");
+
+// Payment step elements
+const regFormCard = document.getElementById("regFormCard");
+const paymentCard = document.getElementById("paymentCard");
+const successCard = document.getElementById("successCard");
+const transactionForm = document.getElementById("transactionForm");
+const paymentAmountDisplay = document.getElementById("paymentAmountDisplay");
+const confirmPaymentBtn = document.getElementById("confirmPaymentBtn");
+const backToFormBtn = document.getElementById("backToFormBtn");
+const registerAnotherBtn = document.getElementById("registerAnotherBtn");
+const paymentLoading = document.getElementById("paymentLoading");
+const copyUpiBtn = document.getElementById("copyUpiBtn");
+const successDetails = document.getElementById("successDetails");
+
+// Store form data between steps
+let pendingRegistration = null;
 
 
 // ── Show / Hide Team Members ──
@@ -112,7 +122,6 @@ if (participationType) {
 }
 
 
-// ── Allow Only One Event ──
 // ── Allow Multiple Events ──
 eventCheckboxes.forEach((cb) => {
   cb.addEventListener("change", function () {
@@ -229,45 +238,102 @@ document.querySelectorAll(".form-group input").forEach((inp) => {
 
 
 // ── Helper Functions ──
-function showLoading(show) {
-  if (regLoading) regLoading.classList.toggle("active", show);
+function showLoading(overlay, show) {
+  if (overlay) overlay.classList.toggle("active", show);
 }
 
-function hideMessages() {
+function showToast(type, title, message) {
+  // Remove existing toasts
+  const existing = document.querySelectorAll('.reg-message');
+  existing.forEach(el => el.remove());
 
-  if (regSuccess) regSuccess.classList.remove("active");
+  const toast = document.createElement('div');
+  toast.className = `reg-message reg-message--${type}`;
+  toast.innerHTML = `
+    <span class="reg-msg-icon">${type === 'success' ? '✓' : '✗'}</span>
+    <div>
+      <strong>${title}</strong>
+      <p>${message}</p>
+    </div>
+  `;
 
-  if (regError) regError.classList.remove("active");
+  document.body.appendChild(toast);
 
-}
+  // Trigger animation
+  requestAnimationFrame(() => {
+    toast.classList.add('active');
+  });
 
-function showSuccessMsg() {
-
-  hideMessages();
-
-  if (regSuccess) regSuccess.classList.add("active");
-
+  // Auto dismiss
+  setTimeout(() => {
+    toast.classList.remove('active');
+    setTimeout(() => toast.remove(), 400);
+  }, 5000);
 }
 
 function showErrorMsg(msg) {
+  showToast('error', 'Error', msg);
+}
 
-  hideMessages();
-
-  if (regErrorMsg) regErrorMsg.textContent = msg;
-
-  if (regError) regError.classList.add("active");
-
+function showSuccessMsg(msg) {
+  showToast('success', 'Success', msg || 'Registration complete!');
 }
 
 
-// ── Form Submission ──
+// ── Step Navigation ──
+function showStep(step) {
+  // Hide all cards
+  regFormCard.style.display = 'none';
+  paymentCard.style.display = 'none';
+  successCard.style.display = 'none';
+
+  // Update step indicators
+  document.querySelectorAll('.step-dot').forEach(dot => {
+    const dotStep = parseInt(dot.getAttribute('data-step'));
+    dot.classList.remove('active', 'completed');
+    if (dotStep < step) dot.classList.add('completed');
+    if (dotStep === step) dot.classList.add('active');
+  });
+
+  // Show the right card
+  if (step === 1) {
+    regFormCard.style.display = 'block';
+  } else if (step === 2) {
+    paymentCard.style.display = 'block';
+  } else if (step === 3) {
+    successCard.style.display = 'block';
+  }
+
+  // Smooth scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+
+// ── Copy UPI ID ──
+if (copyUpiBtn) {
+  copyUpiBtn.addEventListener('click', function () {
+    navigator.clipboard.writeText('vardaandwivedi8@oksbi').then(() => {
+      showToast('success', 'Copied!', 'UPI ID copied to clipboard');
+    }).catch(() => {
+      // Fallback
+      const temp = document.createElement('textarea');
+      temp.value = 'vardaandwivedi8@oksbi';
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      showToast('success', 'Copied!', 'UPI ID copied to clipboard');
+    });
+  });
+}
+
+
+// ── Form Submission (Step 1 → Step 2) ──
 if (regForm) {
 
   regForm.addEventListener("submit", async function (e) {
 
     e.preventDefault();
-
-    hideMessages();
 
     const name = document.getElementById("regName").value.trim();
     const email = document.getElementById("regEmail").value.trim();
@@ -279,67 +345,64 @@ if (regForm) {
     const teamMembers = getTeamMembers();
 
     const { totalFee, count, events: selectedEvents } = updateFeeDisplay();
+
     /* MAIN FORM VALIDATION */
+    let valid = true;
 
-let valid = true;
+    const nameField = document.getElementById("regName");
+    const emailField = document.getElementById("regEmail");
+    const phoneField = document.getElementById("regPhone");
+    const collegeField = document.getElementById("regCollege");
 
-const nameField = document.getElementById("regName");
-const emailField = document.getElementById("regEmail");
-const phoneField = document.getElementById("regPhone");
-const collegeField = document.getElementById("regCollege");
+    /* reset previous errors */
+    [nameField, emailField, phoneField, collegeField].forEach(f => {
+      f.classList.remove("invalid");
+    });
 
-/* reset previous errors */
-[nameField,emailField,phoneField,collegeField].forEach(f=>{
-  f.classList.remove("invalid");
-});
+    /* check empty */
+    if (!name) {
+      nameField.classList.add("invalid");
+      valid = false;
+    }
 
-/* check empty */
+    if (!email) {
+      emailField.classList.add("invalid");
+      valid = false;
+    }
 
-if(!name){
-  nameField.classList.add("invalid");
-  valid=false;
-}
+    if (!phone) {
+      phoneField.classList.add("invalid");
+      valid = false;
+    }
 
-if(!email){
-  emailField.classList.add("invalid");
-  valid=false;
-}
+    if (!college) {
+      collegeField.classList.add("invalid");
+      valid = false;
+    }
 
-if(!phone){
-  phoneField.classList.add("invalid");
-  valid=false;
-}
+    /* email format */
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-if(!college){
-  collegeField.classList.add("invalid");
-  valid=false;
-}
+    if (email && !emailRegex.test(email)) {
+      emailField.classList.add("invalid");
+      showErrorMsg("Please enter a valid email.");
+      return;
+    }
 
-/* email format */
+    /* phone format */
+    if (phone && !/^\d{10}$/.test(phone)) {
+      phoneField.classList.add("invalid");
+      showErrorMsg("Phone number must be 10 digits.");
+      return;
+    }
 
-const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-if(email && !emailRegex.test(email)){
-  emailField.classList.add("invalid");
-  showErrorMsg("Please enter a valid email.");
-  return;
-}
-
-/* phone format */
-
-if(phone && !/^\d{10}$/.test(phone)){
-  phoneField.classList.add("invalid");
-  showErrorMsg("Phone number must be 10 digits.");
-  return;
-}
-
-if(!valid){
-  showErrorMsg("Please fill all required fields.");
-  return;
-}
+    if (!valid) {
+      showErrorMsg("Please fill all required fields.");
+      return;
+    }
 
 
-    /* ── NEW TEAM MEMBER VALIDATION ── */
+    /* ── TEAM MEMBER VALIDATION ── */
 
     for (let i = 1; i <= 4; i++) {
 
@@ -379,69 +442,155 @@ if(!valid){
 
 
     if (count === 0) {
-      showErrorMsg("Please select an event.");
+      showErrorMsg("Please select at least one event.");
       return;
     }
 
-
-    showLoading(true);
-
-
+    // Store pending registration data
     const eventNames = selectedEvents.map((e) => e.name).join(", ");
 
-    const options = {
-      key: RAZORPAY_KEY,
-      amount: totalFee * 100,
-      currency: "INR",
-      name: "Murious 20.0",
-      description: eventNames + " Registration",
-      handler: async function (response) {
-        try {
-          if (db) {
-            // Save a single registration document with all events
-            await db.collection("registrations").add({
-              name: name,
-              email: email,
-              phone: phone,
-              college: college,
-              participationType: participation,
-              teamMembers: teamMembers,
-              events: selectedEvents.map(ev => ({ name: ev.name, fee: ev.fee })),
-              totalPaid: totalFee,
-              eventsInOrder: eventNames,
-              paymentId: response.razorpay_payment_id,
-              timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            });
-          }
-        } catch (err) {
-          console.error("Firestore save error:", err);
-        }
-        showLoading(false);
-        regForm.reset();
-        eventCheckboxes.forEach((cb) => (cb.checked = false));
-        feeDisplay.style.display = "none";
-        showSuccessMsg();
-      },
-      modal: {
-        ondismiss: function () {
-          showLoading(false);
-          showErrorMsg("Payment was cancelled. Registration not completed.");
-        },
-      },
-      prefill: {
-        name: name,
-        email: email,
-        contact: phone,
-      },
-      theme: {
-        color: "#d4a853",
-      },
+    pendingRegistration = {
+      name,
+      email,
+      phone,
+      college,
+      participationType: participation,
+      teamMembers,
+      events: selectedEvents.map(ev => ({ name: ev.name, fee: ev.fee })),
+      totalPaid: totalFee,
+      eventsInOrder: eventNames,
     };
-    const rzp = new Razorpay(options);
-    rzp.open();
+
+    // Update payment amount display
+    if (paymentAmountDisplay) {
+      paymentAmountDisplay.textContent = "₹" + totalFee;
+    }
+
+    // Move step indicators to payment card
+    const stepIndicators = document.querySelector('.step-indicators');
+    if (stepIndicators) {
+      paymentCard.insertBefore(stepIndicators, paymentCard.firstChild);
+    }
+
+    // Navigate to payment step
+    showStep(2);
 
   });
 
+}
+
+
+// ── Transaction Form Submission (Step 2 → Step 3) ──
+if (transactionForm) {
+
+  transactionForm.addEventListener("submit", async function (e) {
+
+    e.preventDefault();
+
+    const transactionId = document.getElementById("transactionId").value.trim();
+
+    if (!transactionId) {
+      document.getElementById("transactionId").classList.add("invalid");
+      showErrorMsg("Please enter your transaction ID.");
+      return;
+    }
+
+    if (transactionId.length < 4) {
+      document.getElementById("transactionId").classList.add("invalid");
+      showErrorMsg("Please enter a valid transaction ID.");
+      return;
+    }
+
+    showLoading(paymentLoading, true);
+
+    try {
+      // Save to Firebase
+      if (db && pendingRegistration) {
+        await db.collection("registrations").add({
+          ...pendingRegistration,
+          transactionId: transactionId,
+          paymentMethod: "UPI",
+          paymentStatus: "pending_verification",
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+
+      showLoading(paymentLoading, false);
+
+      // Show success details
+      if (successDetails && pendingRegistration) {
+        successDetails.innerHTML = `
+          <div class="detail-row">
+            <span class="detail-label">Name</span>
+            <span class="detail-value">${pendingRegistration.name}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Events</span>
+            <span class="detail-value">${pendingRegistration.eventsInOrder}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Amount</span>
+            <span class="detail-value">₹${pendingRegistration.totalPaid}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Transaction ID</span>
+            <span class="detail-value">${transactionId}</span>
+          </div>
+        `;
+      }
+
+      // Move step indicators to success card
+      const stepIndicators = document.querySelector('.step-indicators');
+      if (stepIndicators) {
+        successCard.insertBefore(stepIndicators, successCard.firstChild);
+      }
+
+      showStep(3);
+      showSuccessMsg("Registration saved successfully!");
+
+    } catch (err) {
+      console.error("Firestore save error:", err);
+      showLoading(paymentLoading, false);
+      showErrorMsg("Failed to save registration. Please try again.");
+    }
+
+  });
+
+}
+
+
+// ── Back to Form Button ──
+if (backToFormBtn) {
+  backToFormBtn.addEventListener('click', function () {
+    // Move step indicators back
+    const stepIndicators = document.querySelector('.step-indicators');
+    if (stepIndicators) {
+      regFormCard.insertBefore(stepIndicators, regFormCard.querySelector('.reg-loading-overlay').nextSibling);
+    }
+    showStep(1);
+  });
+}
+
+
+// ── Register Another Button ──
+if (registerAnotherBtn) {
+  registerAnotherBtn.addEventListener('click', function () {
+    // Reset form
+    regForm.reset();
+    eventCheckboxes.forEach((cb) => (cb.checked = false));
+    feeDisplay.style.display = "none";
+    teamSection.style.display = "none";
+    document.getElementById("transactionId").value = "";
+    pendingRegistration = null;
+
+    // Move step indicators back
+    const stepIndicators = document.querySelector('.step-indicators');
+    if (stepIndicators) {
+      regFormCard.insertBefore(stepIndicators, regFormCard.querySelector('.reg-loading-overlay').nextSibling);
+    }
+
+    showStep(1);
+  });
 }
 
 
