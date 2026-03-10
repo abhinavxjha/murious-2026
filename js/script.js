@@ -584,21 +584,15 @@ function initFirebase() {
       },
 
       {
-        title: "CODE IN DARK",
+        title: "CPL",
         img: "images/codeinblack.png",
-        desc: "Code in Dark is a two-person team event that tests coding skills and communication. One teammate reads the problem and dictates the code, while the other, blindfolded, types it exactly as instructed."
+        desc: "CPL is a two-person team event that tests coding skills and communication. One teammate reads the problem and dictates the code, while the other, blindfolded, types it exactly as instructed."
       },
 
       {
         title: "TECH TRIVIA",
         img: "images/QUIZ.png",
         desc: "A fast-paced quiz game inspired by the KBC format, featuring multiple rounds of coding, general knowledge, and tech current affairs. Participants earn points each round, with a leaderboard deciding the ultimate winner."
-      },
-
-      {
-        title: "OPEN MIC",
-        img: "images/openmic1.png",
-        desc: "In collaboration with the Theatre and Music Club, this stage welcomes poetry, storytelling, monologues, music, and everything in between. Step into the spotlight, share your story, and let your art be heard."
       }
     ];
 
@@ -846,11 +840,11 @@ async function exportRegistrationsToCSV() {
       alert('No registrations found.');
       return;
     }
-    const rows = [['Name', 'Email', 'Phone', 'College', 'Event', 'Fee', 'Payment ID', 'Timestamp']];
+    const rows = [['Name', 'Email', 'Phone', 'Event', 'Fee', 'Payment ID', 'Timestamp']];
     snapshot.forEach(doc => {
       const d = doc.data();
       const ts = d.timestamp ? d.timestamp.toDate().toISOString() : '';
-      rows.push([d.name, d.email, d.phone, d.college, d.event, d.fee, d.paymentId, ts]);
+      rows.push([d.name, d.email, d.phone, d.eventsInOrder, d.totalPaid, d.transactionId, ts]);
     });
     const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

@@ -422,8 +422,6 @@ if (regForm) {
     const name = document.getElementById("regName").value.trim();
     const email = document.getElementById("regEmail").value.trim();
     const phone = document.getElementById("regPhone").value.trim();
-    const college = document.getElementById("regCollege").value.trim();
-
     const participation = participationType ? participationType.value : "single";
 
     const teamMembers = getTeamMembers();
@@ -436,10 +434,9 @@ if (regForm) {
     const nameField = document.getElementById("regName");
     const emailField = document.getElementById("regEmail");
     const phoneField = document.getElementById("regPhone");
-    const collegeField = document.getElementById("regCollege");
 
     /* reset previous errors */
-    [nameField, emailField, phoneField, collegeField].forEach(f => {
+    [nameField, emailField, phoneField].forEach(f => {
       f.classList.remove("invalid");
     });
 
@@ -456,11 +453,6 @@ if (regForm) {
 
     if (!phone) {
       phoneField.classList.add("invalid");
-      valid = false;
-    }
-
-    if (!college) {
-      collegeField.classList.add("invalid");
       valid = false;
     }
 
@@ -537,7 +529,6 @@ if (regForm) {
       name,
       email,
       phone,
-      college,
       participationType: participation,
       teamMembers,
       events: selectedEvents.map(ev => ({ name: ev.name, fee: ev.fee })),
