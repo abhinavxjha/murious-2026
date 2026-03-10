@@ -553,6 +553,55 @@ body {
     transform: scale(1);
 }
 
+.event-hint {
+    font-size: 0.65rem;
+    color: rgba(156, 163, 175, 0.6);
+    letter-spacing: 0.5px;
+    margin-top: -4px;
+    margin-bottom: 2px;
+}
+
+.team-size-container {
+    margin-top: 8px;
+    padding: 10px 12px;
+    background: rgba(10, 10, 20, 0.4);
+    border: 1px solid rgba(212, 168, 83, 0.2);
+    border-radius: 10px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.team-size-container label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    color: rgba(212, 168, 83, 0.8);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+}
+
+.team-size-select {
+    width: 100%;
+    padding: 6px 10px;
+    background: rgba(10, 10, 20, 0.8);
+    border: 1px solid rgba(212, 168, 83, 0.3);
+    border-radius: 6px;
+    color: #e8e4df;
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.team-size-select:focus {
+    border-color: #d4a853;
+    box-shadow: 0 0 10px rgba(212, 168, 83, 0.2);
+}
+
 /* Error state for event grid */
 .event-grid.invalid .event-card-inner {
     border-color: rgba(239, 68, 68, 0.4);

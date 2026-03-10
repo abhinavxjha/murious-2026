@@ -107,24 +107,117 @@ const successDetails = document.getElementById("successDetails");
 let pendingRegistration = null;
 
 
-// ── Show / Hide Team Members ──
+// ── Event Management State ──
+const teamSizeGroup = document.getElementById("teamSizeGroup");
+const teamSizeSelect = document.getElementById("teamSize");
+
+// ── Show / Hide Participation Type UI ──
 if (participationType) {
   participationType.addEventListener("change", function () {
+    const isTeam = this.value === "team";
 
-    if (this.value === "team") {
-      teamSection.style.display = "block";
+    // Reset selections and team details
+    eventCheckboxes.forEach(cb => cb.checked = false);
+    if (teamSizeSelect) {
+      teamSizeSelect.innerHTML = '<option value="">Select a team event below</option>';
+      teamSizeSelect.value = "";
+    }
+
+    if (isTeam) {
+      // Show team events, hide individual
+      document.querySelectorAll('.event-individual').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.event-team').forEach(el => el.style.display = 'block');
+
+      if (teamSizeGroup) teamSizeGroup.style.display = 'block';
+      teamSection.style.display = 'none'; // hidden until team size is picked dropdown
     } else {
-      teamSection.style.display = "none";
+      // Show individual events, hide team
+      document.querySelectorAll('.event-individual').forEach(el => el.style.display = 'block');
+      document.querySelectorAll('.event-team').forEach(el => el.style.display = 'none');
+
+      if (teamSizeGroup) teamSizeGroup.style.display = 'none';
+      teamSection.style.display = 'none';
     }
 
     updateFeeDisplay();
   });
 }
 
+// ── Handle Team Size Selection ──
+if (teamSizeSelect) {
+  teamSizeSelect.addEventListener("change", function () {
+    const size = parseInt(this.value, 10);
+    if (!isNaN(size) && size > 1) {
+      teamSection.style.display = "block";
+      // Hide or show member slots based on size
+      for (let i = 1; i <= 4; i++) {
+        // Members count is team size - 1 (since Member 1 is registering party)
+        // Wait, the form has "Member 1 Name", "Member 2", etc.
+        // Let's assume the user filling main form is the leader, but "Member 1 Name" is the FIRST OTHER teammate?
+        // Or is "Member 1" the leader? Wait, the main form asks "Name", "Email", "Phone", "College".
+        // Then teamSection asks for "Member 1 Name". If you are a team of 3, you are the leader + 2 members.
+        // So you should fill Member 1 and Member 2.
+        // So `i <= size - 1` should be visible.
+        const nameField = document.getElementById(`member${i}Name`);
+        if (nameField) {
+          const memberGroup = nameField.closest('.form-group');
+          const parent = memberGroup.parentElement;
 
-// ── Allow Multiple Events ──
+          if (i <= size - 1) {
+            parent.children[(i - 1) * 3].style.display = 'block'; // Name
+            parent.children[(i - 1) * 3 + 1].style.display = 'block'; // Roll
+            parent.children[(i - 1) * 3 + 2].style.display = 'block'; // Phone
+          } else {
+            parent.children[(i - 1) * 3].style.display = 'none';
+            parent.children[(i - 1) * 3 + 1].style.display = 'none';
+            parent.children[(i - 1) * 3 + 2].style.display = 'none';
+            // Clear hidden inputs
+            document.getElementById(`member${i}Name`).value = "";
+            document.getElementById(`member${i}Roll`).value = "";
+            document.getElementById(`member${i}Phone`).value = "";
+          }
+        }
+      }
+    } else {
+      teamSection.style.display = "none";
+    }
+    updateFeeDisplay();
+  });
+}
+
+// ── Allow Multiple Events & Team Size Selects ──
 eventCheckboxes.forEach((cb) => {
   cb.addEventListener("change", function () {
+    const isTeam = participationType && participationType.value === "team";
+
+    if (isTeam) {
+      // Only one team event at a time
+      if (this.checked) {
+        eventCheckboxes.forEach(otherCb => {
+          if (otherCb !== this) otherCb.checked = false;
+        });
+
+        // Populate Team Size dropdown
+        const parentLabel = this.closest('label');
+        const min = parseInt(parentLabel.getAttribute("data-min"));
+        const max = parseInt(parentLabel.getAttribute("data-max"));
+
+        let optionsHtml = '';
+        for (let i = min; i <= max; i++) {
+          optionsHtml += `<option value="${i}">${i} Members</option>`;
+        }
+        if (teamSizeSelect) {
+          teamSizeSelect.innerHTML = optionsHtml;
+          teamSizeSelect.dispatchEvent(new Event('change'));
+        }
+      } else {
+        if (teamSizeSelect) {
+          teamSizeSelect.innerHTML = '<option value="">Select a team event below</option>';
+        }
+        teamSection.style.display = "none";
+      }
+    }
+
     updateFeeDisplay();
   });
 });
@@ -158,20 +251,32 @@ function getTeamMembers() {
 
 // ── Get selected events ──
 function getSelectedEvents() {
-
   const selected = [];
+  const isTeam = participationType && participationType.value === "team";
 
   eventCheckboxes.forEach((cb) => {
-
     if (cb.checked) {
+      const parentLabel = cb.closest('label');
+      let baseFee = parseInt(cb.getAttribute("data-fee"), 10);
+      let calculatedFee = baseFee;
+      let labelFeeTxt = "";
+
+      if (isTeam) {
+        const feeType = parentLabel.getAttribute("data-fee-type");
+        const teamSize = teamSizeSelect && teamSizeSelect.value ? parseInt(teamSizeSelect.value, 10) : parseInt(parentLabel.getAttribute("data-min"));
+
+        if (feeType === "per_head") {
+          calculatedFee = baseFee * teamSize;
+        }
+        labelFeeTxt = `(Team of ${teamSize})`;
+      }
 
       selected.push({
-        name: cb.value,
-        fee: parseInt(cb.getAttribute("data-fee")),
+        name: cb.value + (labelFeeTxt ? ` ${labelFeeTxt}` : ''),
+        fee: calculatedFee,
+        rawName: cb.value
       });
-
     }
-
   });
 
   return selected;
@@ -182,41 +287,20 @@ function getSelectedEvents() {
 function updateFeeDisplay() {
 
   const selected = getSelectedEvents();
-
   let totalFee = 0;
 
-  const teamMembers = getTeamMembers();
-
-  const teamSize =
-    participationType && participationType.value === "team"
-      ? 1 + teamMembers.length
-      : 1;
-
   selected.forEach((e) => {
-
-    if (e.name === "HACKATHON") {
-      totalFee += 80 * teamSize;
-    } else {
-      totalFee += e.fee;
-    }
-
+    totalFee += e.fee;
   });
 
   const count = selected.length;
 
   if (count > 0) {
-
     feeAmount.textContent = "₹" + totalFee;
-
-    feeCount.textContent =
-      count + (count === 1 ? " event selected" : " events selected");
-
+    feeCount.textContent = count + (count === 1 ? " event selected" : " events selected");
     feeDisplay.style.display = "flex";
-
   } else {
-
     feeDisplay.style.display = "none";
-
   }
 
   return { totalFee, count, events: selected };
@@ -600,5 +684,10 @@ document.addEventListener("DOMContentLoaded", () => {
   initFirebase();
   generateStars();
   generateParticles();
+
+  // Set initial event filters based on participation type
+  if (participationType) {
+    participationType.dispatchEvent(new Event('change'));
+  }
 
 });

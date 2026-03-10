@@ -97,8 +97,15 @@
         <div class="form-group">
           <label for="participationType">Participation Type</label>
           <select id="participationType">
-            <option value="single">Single Participant</option>
-            <option value="team">Team</option>
+            <option value="single">Individual</option>
+            <option value="team">Team / Squad</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="teamSizeGroup" style="display: none;">
+          <label for="teamSize">Team Size</label>
+          <select id="teamSize">
+            <option value="">Select a team event below</option>
           </select>
         </div>
 
@@ -170,20 +177,9 @@
           <label>Select Event</label>
 
           <div class="event-grid" id="eventGrid">
-            <label class="event-card" data-event="HACKATHON" data-fee="80" style="grid-column: span 2">
-              <input type="checkbox" name="events" value="HACKATHON" data-fee="80" />
-              <div class="event-card-inner">
-                <span class="event-icon">
-                  <img src="https://cdn-icons-png.flaticon.com/512/2721/2721266.png" class="event-img" />
-                </span>
-                <span class="event-name">HACKATHON </span>
-                <span>(MIN 3 AND MAX 5 PARTICIPANTS ALLOWED)</span>
-                <span class="event-fee">₹80 / member</span>
-              </div>
-              <div class="event-check">✓</div>
-            </label>
 
-            <label class="event-card" data-event="REEL RUMBLE" data-fee="100">
+            <!-- Individual Events -->
+            <label class="event-card event-individual" data-event="REEL RUMBLE" data-fee="100">
               <input type="checkbox" name="events" value="REEL RUMBLE" data-fee="100" />
               <div class="event-card-inner">
                 <span class="event-icon"><img src="images/reel.png" class="event-img" /></span>
@@ -193,7 +189,7 @@
               <div class="event-check">✓</div>
             </label>
 
-            <label class="event-card" data-event="CODING PREMIER LEAGUE" data-fee="80">
+            <label class="event-card event-individual" data-event="CODING PREMIER LEAGUE" data-fee="80">
               <input type="checkbox" name="events" value="CODING PREMIER LEAGUE" data-fee="80" />
               <div class="event-card-inner">
                 <span class="event-icon"><img src="images/codeinblack.png" class="event-img" /></span>
@@ -203,7 +199,7 @@
               <div class="event-check">✓</div>
             </label>
 
-            <label class="event-card" data-event="PROMPT TO DESIGN" data-fee="100">
+            <label class="event-card event-individual" data-event="PROMPT TO DESIGN" data-fee="100">
               <input type="checkbox" name="events" value="PROMPT TO DESIGN" data-fee="100" />
               <div class="event-card-inner">
                 <span class="event-icon"><img src="images/cloud.png" class="event-img" /></span>
@@ -213,7 +209,7 @@
               <div class="event-check">✓</div>
             </label>
 
-            <label class="event-card" data-event="CODE ROYALE" data-fee="100">
+            <label class="event-card event-individual" data-event="CODE ROYALE" data-fee="100">
               <input type="checkbox" name="events" value="CODE ROYALE" data-fee="100" />
               <div class="event-card-inner">
                 <span class="event-icon"><img src="images/laptop.png" class="event-img" /></span>
@@ -223,7 +219,7 @@
               <div class="event-check">✓</div>
             </label>
 
-            <label class="event-card" data-event="CLASH ROYALE" data-fee="100">
+            <label class="event-card event-individual" data-event="CLASH ROYALE" data-fee="100">
               <input type="checkbox" name="events" value="CLASH ROYALE" data-fee="100" />
               <div class="event-card-inner">
                 <span class="event-icon"><img src="images/console.png" class="event-img" /></span>
@@ -233,27 +229,27 @@
               <div class="event-check">✓</div>
             </label>
 
-            <label class="event-card" data-event="FIFA" data-fee="80">
+            <label class="event-card event-individual" data-event="FIFA" data-fee="80">
               <input type="checkbox" name="events" value="FIFA" data-fee="80" />
               <div class="event-card-inner">
                 <span class="event-icon"><img src="images/console.png" class="event-img" /></span>
                 <span class="event-name">FIFA</span>
-                <span class="event-fee">₹80 / HEAD</span>
+                <span class="event-fee">₹80</span>
               </div>
               <div class="event-check">✓</div>
             </label>
 
-            <label class="event-card" data-event="TEKKEN" data-fee="80">
+            <label class="event-card event-individual" data-event="TEKKEN" data-fee="80">
               <input type="checkbox" name="events" value="TEKKEN" data-fee="80" />
               <div class="event-card-inner">
                 <span class="event-icon"><img src="images/console.png" class="event-img" /></span>
                 <span class="event-name">TEKKEN</span>
-                <span class="event-fee">₹80 / HEAD</span>
+                <span class="event-fee">₹80</span>
               </div>
               <div class="event-check">✓</div>
             </label>
 
-            <label class="event-card" data-event="FRAME IT" data-fee="150">
+            <label class="event-card event-individual" data-event="FRAME IT" data-fee="150">
               <input type="checkbox" name="events" value="FRAME IT" data-fee="150" />
               <div class="event-card-inner">
                 <span class="event-icon"><img src="images/camera.png" class="event-img" /></span>
@@ -263,35 +259,69 @@
               <div class="event-check">✓</div>
             </label>
 
-            <label class="event-card" data-event="the triwizard contest" data-fee="200">
-              <input type="checkbox" name="events" value="the triwizard contest" data-fee="200" />
+            <!-- Team Events -->
+            <label class="event-card event-team" data-event="HACKATHON" data-fee="80" data-min="3" data-max="5"
+              data-fee-type="per_head" style="grid-column: span 2; display: none;">
+              <input type="checkbox" name="events" value="HACKATHON" data-fee="80" />
               <div class="event-card-inner">
-                <span class="event-icon"><img src="images/TREASURE.png" class="event-img" /></span>
-                <span class="event-name">THE TRIWIZARD CONTEST</span>
-                <span class="event-fee">₹200</span>
+                <span class="event-icon">
+                  <img src="https://cdn-icons-png.flaticon.com/512/2721/2721266.png" class="event-img" />
+                </span>
+                <span class="event-name">HACKATHON</span>
+                <span class="event-hint">(3 TO 5 PARTICIPANTS)</span>
+                <span class="event-fee">₹80 / HEAD</span>
               </div>
               <div class="event-check">✓</div>
             </label>
 
-            <label class="event-card" data-event="TECH TRIVIA" data-fee="80">
+            <label class="event-card event-team" data-event="THE TRIWIZARD CONTEST" data-fee="50" data-min="2"
+              data-max="4" data-fee-type="per_head" style="display: none;">
+              <input type="checkbox" name="events" value="THE TRIWIZARD CONTEST" data-fee="50" />
+              <div class="event-card-inner">
+                <span class="event-icon"><img src="images/TREASURE.png" class="event-img" /></span>
+                <span class="event-name">THE TRIWIZARD CONTEST</span>
+                <span class="event-hint">(2 TO 4 PARTICIPANTS)</span>
+                <span class="event-fee">₹50 / HEAD</span>
+              </div>
+              <div class="event-check">✓</div>
+            </label>
+
+            <label class="event-card event-team" data-event="VALORANT" data-fee="250" data-min="5" data-max="5"
+              data-fee-type="flat" style="display: none;">
+              <input type="checkbox" name="events" value="VALORANT" data-fee="250" />
+              <div class="event-card-inner">
+                <span class="event-icon"><img src="images/console.png" class="event-img" /></span>
+                <span class="event-name">VALORANT</span>
+                <span class="event-hint">(TEAM OF 5 ONLY)</span>
+                <span class="event-fee">₹250 / TEAM</span>
+              </div>
+              <div class="event-check">✓</div>
+            </label>
+
+            <label class="event-card event-team" data-event="BGMI" data-fee="50" data-min="3" data-max="4"
+              data-fee-type="per_head" style="display: none;">
+              <input type="checkbox" name="events" value="BGMI" data-fee="50" />
+              <div class="event-card-inner">
+                <span class="event-icon"><img src="images/console.png" class="event-img" /></span>
+                <span class="event-name">BGMI</span>
+                <span class="event-hint">(3 TO 4 PARTICIPANTS)</span>
+                <span class="event-fee">₹50 / HEAD</span>
+              </div>
+              <div class="event-check">✓</div>
+            </label>
+
+            <label class="event-card event-team" data-event="TECH TRIVIA" data-fee="80" data-min="2" data-max="2"
+              data-fee-type="flat" style="display: none;">
               <input type="checkbox" name="events" value="TECH TRIVIA" data-fee="80" />
               <div class="event-card-inner">
                 <span class="event-icon"><img src="images/QUIZ.png" class="event-img" /></span>
                 <span class="event-name">TECH TRIVIA</span>
-                <span class="event-fee">₹80</span>
+                <span class="event-hint">(TEAM OF 2 ONLY)</span>
+                <span class="event-fee">₹80 / TEAM</span>
               </div>
               <div class="event-check">✓</div>
             </label>
 
-            <label class="event-card" data-event="OPEN MIC" data-fee="80">
-              <input type="checkbox" name="events" value="OPEN MIC" data-fee="80" />
-              <div class="event-card-inner">
-                <span class="event-icon"><img src="images/openmic1.png" class="event-img" /></span>
-                <span class="event-name">OPEN MIC</span>
-                <span class="event-fee">₹80</span>
-              </div>
-              <div class="event-check">✓</div>
-            </label>
           </div>
         </div>
 
