@@ -685,3 +685,7 @@ body {
         max-width: none;
     }
 }
+
+.invalid{
+border:2px solid red;
+}
