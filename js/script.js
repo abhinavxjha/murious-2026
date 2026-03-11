@@ -577,11 +577,11 @@ function initFirebase() {
         desc: "Prompt to Design is an AI-based challenge where participants recreate a given image using only text prompts. Contestants observe the reference image and generate it through an AI tool."
       },
 
-      {
-        title: "STORAGE WARS",
-        img: "images/sword.png",
-        desc: "Students engage in bidding on storage containers using fake currency, inspecting only the exterior. Teams of 2–4 collaborate, emphasizing strategic thinking and resource management."
-      },
+      // {
+      //   title: "STORAGE WARS",
+      //   img: "images/sword.png",
+      //   desc: "Students engage in bidding on storage containers using fake currency, inspecting only the exterior. Teams of 2–4 collaborate, emphasizing strategic thinking and resource management."
+      // },
 
       {
         title: "CPL",
