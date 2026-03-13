@@ -585,7 +585,7 @@ function initFirebase() {
 
       {
         title: "CPL",
-        img: "images/codeinblack.png",
+        img: "images/cplcodef.webp",
         desc: "CPL is a two-person team event that tests coding skills and communication. One teammate reads the problem and dictates the code, while the other, blindfolded, types it exactly as instructed."
       },
 
